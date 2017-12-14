@@ -1,0 +1,35 @@
+version: '2'
+services:
+  karaffacade:
+    command:
+        - setup.sh
+    build:
+          context: ./karaffacade
+          dockerfile: Dockerfile
+    container_name: karaffacade
+    ports:
+        - "8182:8182"
+    depends_on:
+        - karafsoa
+  karafsoa:
+    command:
+        - setup.sh
+    build:
+       context: ./karafsoa
+       dockerfile: Dockerfile
+    container_name: karafsoa
+    ports:
+        - "8181:8181"
+    depends_on:
+        - cassandra
+  cassandra:
+    build:
+       context: ./cassandra
+       dockerfile: Dockerfile
+    container_name: cass
+    ports:
+        - "7000:7000"
+        - "7001:7001"
+        - "7199:7199"
+        - "9042:9042"
+

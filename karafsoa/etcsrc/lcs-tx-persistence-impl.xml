@@ -1,0 +1,47 @@
+<blueprint xmlns="http://www.osgi.org/xmlns/blueprint/v1.0.0"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xmlns:cm="http://aries.apache.org/blueprint/xmlns/blueprint-cm/v1.1.0"
+           xsi:schemaLocation="http://www.osgi.org/xmlns/blueprint/v1.0.0 http://www.osgi.org/xmlns/blueprint/v1.0.0/blueprint.xsd">
+
+    <reference id="jsonService" interface="com.cengage.socom.json.service.api.JsonService" />
+
+    <cm:property-placeholder persistent-id="com.cengage.lcs.tx.persistence.impl" update-strategy="reload">
+        <cm:default-properties>
+            <!-- Cassandra Properties -->
+            <cm:property name="cassandra.contactPoints" value="localhost"/>
+            <cm:property name="cassandra.port" value="9042"/>
+            <cm:property name="cassandra.keyspace" value="lcs_tx"/>
+            <cm:property name="cassandra.username" value="cassandra"/>
+            <cm:property name="cassandra.password" value="cassandra"/>
+            <cm:property name="cassandra.localDc" value=""/>
+            <cm:property name="cassandra.consistencyLevel" value="LOCAL_QUORUM"/>
+            <cm:property name="cassandra.protocolVersion" value="V3"/>
+            <cm:property name="cassandra.compression" value="LZ4"/>
+            <cm:property name="cassandra.createSchema" value="true" />
+        </cm:default-properties>
+    </cm:property-placeholder>
+
+    <bean id="sessionFactory" class="com.cengage.socom.cassandra.session.CassandraSessionFactory" init-method="init"
+          destroy-method="destroy">
+        <property name="contactPoints" value="${cassandra.contactPoints}"/>
+        <property name="port" value="${cassandra.port}"/>
+        <property name="keyspace" value="${cassandra.keyspace}"/>
+        <property name="username" value="${cassandra.username}"/>
+        <property name="password" value="${cassandra.password}"/>
+        <property name="localDc" value="${cassandra.localDc}"/>
+        <property name="consistencyLevel" value="${cassandra.consistencyLevel}"/>
+        <property name="protocolVersion" value="${cassandra.protocolVersion}"/>
+        <property name="compression" value="${cassandra.compression}"/>
+    </bean>
+
+    <bean id="session" factory-ref="sessionFactory" factory-method="createSession"/>
+
+    <bean id="orchestrationRepository" class="com.cengage.lcs.tx.persistence.impl.OrchestrationRepositoryImpl">
+        <argument ref="session" />
+        <argument ref="jsonService" />
+        <argument value="${cassandra.createSchema}" />
+    </bean>
+
+    <service ref="orchestrationRepository" interface="com.cengage.lcs.tx.persistence.api.OrchestrationRepository" />
+
+</blueprint>
